@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Placement Jobs | NeoPatna Campus Portal</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .jobs-container { display: grid; grid-template-columns: 300px 1fr; gap: 1.5rem; padding: 1.5rem; max-width: 1280px; margin: 0 auto; }
+    @media (max-width: 900px) { .jobs-container { grid-template-columns: 1fr; } }
+    .sidebar-filters { position: sticky; top: 80px; height: fit-content; }
+    .jobs-list { display: flex; flex-direction: column; gap: 1rem; }
+    .apply-btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.65rem 1.25rem; background: var(--primary); color: white; border-radius: 8px; font-size: 0.9rem; font-weight: 600; border: none; cursor: pointer; transition: all 0.25s; }
+    .apply-btn:hover { background: var(--primary-light); }
+    .apply-btn.applied { background: var(--success); cursor: default; }
+    .job-detail-panel { position: fixed; top: 0; right: 0; width: 520px; height: 100vh; background: white; border-left: 1px solid var(--border); box-shadow: -4px 0 30px rgba(0,0,0,0.1); z-index: 1500; transform: translateX(100%); transition: transform 0.35s ease; overflow-y: auto; }
+    .job-detail-panel.open { transform: translateX(0); }
+    .panel-header { background: linear-gradient(135deg, var(--primary), var(--primary-light)); color: white; padding: 2rem 1.5rem; }
+    .panel-close { position: absolute; top: 1rem; right: 1rem; background: rgba(255,255,255,0.2); border: none; color: white; width: 36px; height: 36px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; }
+    .pagination { display: flex; gap: 0.5rem; justify-content: center; margin-top: 1.5rem; }
+    .page-btn { width: 36px; height: 36px; border: 1px solid var(--border); border-radius: 6px; background: white; cursor: pointer; font-size: 0.875rem; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+    .page-btn:hover, .page-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="/" class="navbar-brand">
+    <div class="logo-icon">NP</div>
+    <div class="brand-text">NeoPatna <span>NIT Patna Campus Portal</span></div>
+  </a>
+  <ul class="nav-links">
+    <li><a href="/">🏠 Home</a></li>
+    <li><a href="/jobs" class="active">💼 Placements</a></li>
+    <li><a href="/notices">📋 Notices</a></li>
+    <li><a href="/dashboard">📊 Dashboard</a></li>
+  </ul>
+  <div class="nav-actions">
+    <div id="guest-nav" style="display:flex;gap:0.5rem">
+      <a href="/login"><button class="btn-nav btn-nav-outline">Login</button></a>
+    </div>
+    <div id="user-nav" style="display:none;align-items:center;gap:0.5rem">
+      <span style="color:rgba(255,255,255,0.8);font-size:0.875rem">Hello, <span id="nav-user-name"></span></span>
+      <a href="/dashboard"><button class="btn-nav btn-nav-outline">Dashboard</button></a>
+      <button class="btn-nav btn-nav-solid" onclick="logout()">Logout</button>
+    </div>
+  </div>
+</nav>
+
+<!-- Page Header -->
+<div class="page-header">
+  <div class="container">
+    <h2>💼 Campus Placements & Jobs</h2>
+    <p>Browse and apply for campus placement opportunities from top companies</p>
+  </div>
+</div>
+
+<!-- Admin/Recruiter: Post Job Button -->
+<div id="post-job-bar" style="display:none;background:#f0fdf4;border-bottom:1px solid #bbf7d0;padding:0.75rem 1.5rem">
+  <div style="display:flex;justify-content:space-between;align-items:center;max-width:1280px;margin:0 auto">
+    <span style="font-size:0.875rem;color:#166534;font-weight:600">👑 You have recruiter/admin access</span>
+    <button class="btn btn-success btn-sm" onclick="openModal('post-job-modal')">+ Post New Job</button>
+  </div>
+</div>
+
+<div class="jobs-container">
+  <!-- Sidebar Filters -->
+  <aside class="sidebar-filters">
+    <div class="card">
+      <div class="card-header"><h3>🔍 Filter Jobs</h3></div>
+      <div class="card-body" style="padding:1rem">
+        <div class="form-group">
+          <label class="form-label">Search</label>
+          <input type="text" id="filter-search" class="form-control" placeholder="Company or title..." oninput="debounceLoad()">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Job Type</label>
+          <select id="filter-type" class="form-control form-select" onchange="loadJobs()">
+            <option value="">All Types</option>
+            <option value="full-time">Full Time</option>
+            <option value="internship">Internship</option>
+            <option value="part-time">Part Time</option>
+            <option value="contract">Contract</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Department</label>
+          <select id="filter-dept" class="form-control form-select" onchange="loadJobs()">
+            <option value="">All Departments</option>
+          </select>
+        </div>
+        <button class="btn btn-outline btn-sm" style="width:100%" onclick="clearFilters()">Clear Filters</button>
+      </div>
+    </div>
+
+    <!-- My Applications (student only) -->
+    <div id="my-apps-card" style="display:none;margin-top:1rem">
+      <div class="card">
+        <div class="card-header"><h3>📋 My Applications</h3></div>
+        <div class="card-body" id="my-apps-list" style="padding:0.75rem">
+          <div class="loading-state" style="padding:1rem"><div class="spinner"></div></div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Jobs List -->
+  <main>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+      <h3 id="jobs-count" style="font-size:1rem;color:var(--text-muted)">Loading...</h3>
+    </div>
+    <div id="jobs-list">
+      <div class="loading-state"><div class="spinner"></div><span>Loading jobs...</span></div>
+    </div>
+    <div class="pagination" id="pagination"></div>
+  </main>
+</div>
+
+<!-- Job Detail Panel -->
+<div class="job-detail-panel" id="job-detail-panel">
+  <button class="panel-close" onclick="closePanel()">✕</button>
+  <div id="job-detail-content"></div>
+</div>
+<div id="panel-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:1400" onclick="closePanel()"></div>
+
+<!-- Post Job Modal -->
+<div class="modal-overlay" id="post-job-modal">
+  <div class="modal" style="max-width:680px">
+    <div class="modal-header">
+      <h3>📋 Post New Job</h3>
+      <button class="modal-close" onclick="closeModal('post-job-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <form id="post-job-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Job Title *</label>
+            <input type="text" id="job-title" class="form-control" placeholder="e.g. Software Engineer" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Company Name *</label>
+            <input type="text" id="job-company" class="form-control" placeholder="e.g. Google India" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Job Description *</label>
+          <textarea id="job-desc" class="form-control" rows="4" placeholder="Describe the role, responsibilities..." required></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Requirements</label>
+          <textarea id="job-req" class="form-control" rows="3" placeholder="Skills, qualifications..."></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Location</label>
+            <input type="text" id="job-location" class="form-control" placeholder="e.g. Bangalore">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Job Type *</label>
+            <select id="job-type" class="form-control form-select">
+              <option value="full-time">Full Time</option>
+              <option value="internship">Internship</option>
+              <option value="part-time">Part Time</option>
+              <option value="contract">Contract</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Package (LPA)</label>
+            <input type="number" id="job-package" class="form-control" placeholder="e.g. 12.5" step="0.5" min="0">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Min CGPA Required</label>
+            <input type="number" id="job-min-cgpa" class="form-control" placeholder="e.g. 7.5" step="0.1" min="0" max="10">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Eligible Departments (comma-separated codes)</label>
+            <input type="text" id="job-depts" class="form-control" placeholder="CSE,ECE,IT">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Application Deadline *</label>
+            <input type="date" id="job-deadline" class="form-control" required>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('post-job-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="postJob()">📢 Post Job</button>
+    </div>
+  </div>
+</div>
+
+<!-- Apply Modal -->
+<div class="modal-overlay" id="apply-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>📝 Apply for Job</h3>
+      <button class="modal-close" onclick="closeModal('apply-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="apply-job-info" style="background:var(--bg);border-radius:8px;padding:1rem;margin-bottom:1.25rem"></div>
+      <form id="apply-form" enctype="multipart/form-data">
+        <input type="hidden" id="apply-job-id">
+        <div class="form-group">
+          <label class="form-label">Cover Letter (optional)</label>
+          <textarea id="cover-letter" class="form-control" rows="5" placeholder="Write a brief cover letter about why you're a good fit..."></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Upload Resume (PDF/DOC, max 5MB)</label>
+          <input type="file" id="resume-file" class="form-control" accept=".pdf,.doc,.docx">
+          <p style="font-size:0.775rem;color:var(--text-muted);margin-top:0.25rem">If not uploaded, your profile resume will be used.</p>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('apply-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitApplication()" id="apply-submit-btn">🚀 Submit Application</button>
+    </div>
+  </div>
+</div>
+
+<script src="/js/app.js"></script>
+<script>
+let currentPage = 1;
+let appliedJobs = new Set();
+let selectedJobId = null;
+const user = Auth.getUser();
+
+// Init page
+(async function init() {
+  // Load department filter
+  try {
+    const { data } = await apiFetch('/departments');
+    const sel = document.getElementById('filter-dept');
+    data.departments?.forEach(d => {
+      const o = document.createElement('option');
+      o.value = d.code; o.textContent = d.code + ' - ' + d.name;
+      sel.appendChild(o);
+    });
+  } catch {}
+
+  // Show recruiter/admin bar
+  if (user && (user.role === 'admin' || user.role === 'recruiter')) {
+    document.getElementById('post-job-bar').style.display = 'block';
+  }
+
+  // Load my applications for students
+  if (user && user.role === 'student') {
+    document.getElementById('my-apps-card').style.display = 'block';
+    loadMyApplications();
+  }
+
+  loadJobs();
+})();
+
+let debounceTimer;
+function debounceLoad() {
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(loadJobs, 400);
+}
+
+async function loadJobs(page = 1) {
+  currentPage = page;
+  const search = document.getElementById('filter-search').value;
+  const type = document.getElementById('filter-type').value;
+  const dept = document.getElementById('filter-dept').value;
+
+  const params = new URLSearchParams({ page, limit: 8 });
+  if (search) params.set('search', search);
+  if (type) params.set('type', type);
+  if (dept) params.set('department', dept);
+
+  const list = document.getElementById('jobs-list');
+  list.innerHTML = '<div class="loading-state"><div class="spinner"></div><span>Loading...</span></div>';
+
+  try {
+    const { data } = await apiFetch('/jobs?' + params);
+    if (!data.success) throw new Error();
+
+    document.getElementById('jobs-count').textContent = `${data.pagination.total} job${data.pagination.total !== 1 ? 's' : ''} found`;
+
+    if (data.jobs.length === 0) {
+      list.innerHTML = `<div class="empty-state"><div class="empty-icon">💼</div><h3>No jobs found</h3><p>Try adjusting your filters</p></div>`;
+      document.getElementById('pagination').innerHTML = '';
+      return;
+    }
+
+    list.innerHTML = data.jobs.map(job => renderJobCard(job)).join('');
+    renderPagination(data.pagination);
+
+    // Mark applied jobs
+    list.querySelectorAll('[data-job-id]').forEach(el => {
+      if (appliedJobs.has(parseInt(el.dataset.jobId))) {
+        const btn = el.querySelector('.apply-job-btn');
+        if (btn) { btn.textContent = '✅ Applied'; btn.classList.add('applied'); btn.disabled = true; }
+      }
+    });
+  } catch {
+    list.innerHTML = '<div class="alert alert-error">Failed to load jobs. Please try again.</div>';
+  }
+}
+
+function renderJobCard(job) {
+  const isLoggedIn = Auth.isLoggedIn();
+  const canApply = user && user.role === 'student';
+  const isAdmin = user && (user.role === 'admin' || user.role === 'recruiter');
+
+  return `
+    <div class="job-card" data-job-id="${job.id}" onclick="viewJob(${job.id}, event)">
+      <div class="job-card-header">
+        <div>
+          <div class="job-card-title">${job.title}</div>
+          <div class="job-card-company">🏢 ${job.company_name}${job.location ? ' · 📍 ' + job.location : ''}</div>
+        </div>
+        ${job.package_lpa ? `<div class="package-highlight">₹${job.package_lpa} LPA</div>` : ''}
+      </div>
+      <div class="job-card-meta">
+        ${getJobTypeTag(job.job_type)}
+        ${job.min_cgpa > 0 ? `<span class="tag tag-orange">Min CGPA: ${job.min_cgpa}</span>` : ''}
+        ${job.eligible_departments?.length ? `<span class="tag tag-gray">${job.eligible_departments.join(', ')}</span>` : ''}
+        <span class="tag ${parseInt((new Date(job.deadline) - new Date()) / (1000*60*60*24)) <= 7 ? 'tag-red' : 'tag-green'}">📅 ${daysUntil(job.deadline).replace(/<[^>]+>/g,'')}</span>
+      </div>
+      <p style="font-size:0.85rem;color:var(--text-muted);margin:0.5rem 0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${job.description}</p>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:0.75rem;padding-top:0.75rem;border-top:1px solid var(--border)">
+        <span style="font-size:0.8rem;color:var(--text-muted)">📨 ${job.application_count || 0} applicant${job.application_count != 1 ? 's' : ''}</span>
+        <div style="display:flex;gap:0.5rem">
+          ${canApply ? `<button class="apply-job-btn btn btn-primary btn-sm" onclick="event.stopPropagation();openApply(${job.id},'${job.title}','${job.company_name}')">Apply Now</button>` : ''}
+          ${!isLoggedIn ? `<a href="/login"><button class="btn btn-outline btn-sm">Login to Apply</button></a>` : ''}
+          ${isAdmin ? `<button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deactivateJob(${job.id})">Remove</button>` : ''}
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderPagination({ pages, page }) {
+  const el = document.getElementById('pagination');
+  if (pages <= 1) { el.innerHTML = ''; return; }
+  let html = '';
+  for (let i = 1; i <= pages; i++) {
+    html += `<button class="page-btn ${i === page ? 'active' : ''}" onclick="loadJobs(${i})">${i}</button>`;
+  }
+  el.innerHTML = html;
+}
+
+async function viewJob(id, e) {
+  if (e.target.tagName === 'BUTTON' || e.target.tagName === 'A') return;
+  selectedJobId = id;
+  const panel = document.getElementById('job-detail-panel');
+  const content = document.getElementById('job-detail-content');
+  content.innerHTML = '<div class="loading-state" style="padding:3rem"><div class="spinner"></div></div>';
+  panel.classList.add('open');
+  document.getElementById('panel-overlay').style.display = 'block';
+  document.body.style.overflow = 'hidden';
+
+  try {
+    const { data } = await apiFetch(`/jobs/${id}`);
+    if (!data.success) throw new Error();
+    const job = data.job;
+    const canApply = user && user.role === 'student';
+    const isApplied = appliedJobs.has(id);
+
+    content.innerHTML = `
+      <div class="panel-header" style="position:relative">
+        <button class="panel-close" onclick="closePanel()">✕</button>
+        <h2 style="font-size:1.3rem;font-weight:800;margin-bottom:0.5rem">${job.title}</h2>
+        <p style="opacity:0.85;font-size:0.9rem">🏢 ${job.company_name}</p>
+        ${job.package_lpa ? `<div style="margin-top:0.75rem;font-size:1.4rem;font-weight:900;color:var(--accent-light)">₹${job.package_lpa} LPA</div>` : ''}
+      </div>
+      <div style="padding:1.5rem">
+        <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:1.5rem">
+          ${getJobTypeTag(job.job_type)}
+          ${job.location ? `<span class="tag tag-gray">📍 ${job.location}</span>` : ''}
+          ${job.min_cgpa > 0 ? `<span class="tag tag-orange">Min CGPA: ${job.min_cgpa}</span>` : ''}
+          ${job.eligible_departments?.length ? job.eligible_departments.map(d => `<span class="tag tag-blue">${d}</span>`).join('') : ''}
+        </div>
+
+        <div style="background:var(--bg);border-radius:8px;padding:1rem;margin-bottom:1.5rem;display:grid;grid-template-columns:1fr 1fr;gap:0.75rem">
+          <div><span style="font-size:0.75rem;color:var(--text-muted);display:block">DEADLINE</span><strong>${formatDate(job.deadline)}</strong></div>
+          <div><span style="font-size:0.75rem;color:var(--text-muted);display:block">APPLICANTS</span><strong>${job.application_count}</strong></div>
+          <div><span style="font-size:0.75rem;color:var(--text-muted);display:block">POSTED BY</span><strong>${job.posted_by_name || 'Admin'}</strong></div>
+          <div><span style="font-size:0.75rem;color:var(--text-muted);display:block">POSTED ON</span><strong>${formatDate(job.created_at)}</strong></div>
+        </div>
+
+        <h4 style="font-weight:700;margin-bottom:0.75rem;color:var(--primary)">📋 Job Description</h4>
+        <p style="font-size:0.875rem;line-height:1.8;white-space:pre-line;margin-bottom:1.5rem">${job.description}</p>
+
+        ${job.requirements ? `
+          <h4 style="font-weight:700;margin-bottom:0.75rem;color:var(--primary)">✅ Requirements</h4>
+          <p style="font-size:0.875rem;line-height:1.8;white-space:pre-line;margin-bottom:1.5rem">${job.requirements}</p>
+        ` : ''}
+
+        ${canApply ? `
+          <button class="btn btn-primary" style="width:100%" onclick="openApply(${job.id},'${job.title}','${job.company_name}')"
+            ${isApplied ? 'disabled style="background:var(--success)"' : ''}>
+            ${isApplied ? '✅ Already Applied' : '🚀 Apply Now'}
+          </button>` : ''}
+        ${!Auth.isLoggedIn() ? `<a href="/login" style="display:block"><button class="btn btn-primary" style="width:100%">Login to Apply</button></a>` : ''}
+      </div>`;
+  } catch {
+    content.innerHTML = '<div class="alert alert-error" style="margin:1.5rem">Failed to load job details</div>';
+  }
+}
+
+function closePanel() {
+  document.getElementById('job-detail-panel').classList.remove('open');
+  document.getElementById('panel-overlay').style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+function openApply(jobId, title, company) {
+  if (!Auth.isLoggedIn()) { window.location.href = '/login'; return; }
+  document.getElementById('apply-job-id').value = jobId;
+  document.getElementById('apply-job-info').innerHTML = `<strong>${title}</strong><br><span style="color:var(--text-muted);font-size:0.875rem">🏢 ${company}</span>`;
+  openModal('apply-modal');
+}
+
+async function submitApplication() {
+  const btn = document.getElementById('apply-submit-btn');
+  const jobId = document.getElementById('apply-job-id').value;
+  const coverLetter = document.getElementById('cover-letter').value;
+  const resumeFile = document.getElementById('resume-file').files[0];
+
+  btn.disabled = true;
+  btn.textContent = 'Submitting...';
+
+  try {
+    const formData = new FormData();
+    if (coverLetter) formData.append('cover_letter', coverLetter);
+    if (resumeFile) formData.append('resume', resumeFile);
+
+    const token = Auth.getToken();
+    const res = await fetch(`/api/jobs/${jobId}/apply`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` },
+      body: formData
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      appliedJobs.add(parseInt(jobId));
+      closeModal('apply-modal');
+      showToast('Application submitted successfully! 🎉', 'success');
+      document.getElementById('cover-letter').value = '';
+      document.getElementById('resume-file').value = '';
+      loadJobs(currentPage);
+      if (user?.role === 'student') loadMyApplications();
+    } else {
+      showToast(data.message || 'Application failed', 'error');
+    }
+  } catch {
+    showToast('Failed to submit application', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '🚀 Submit Application';
+  }
+}
+
+async function loadMyApplications() {
+  const list = document.getElementById('my-apps-list');
+  try {
+    const { data } = await apiFetch('/jobs/student/my-applications');
+    if (data.success) {
+      data.applications.forEach(app => appliedJobs.add(app.job_id));
+      if (!data.applications.length) {
+        list.innerHTML = '<p style="font-size:0.8rem;color:var(--text-muted);text-align:center;padding:0.75rem">No applications yet</p>';
+        return;
+      }
+      list.innerHTML = data.applications.slice(0, 5).map(app => `
+        <div style="padding:0.6rem 0;border-bottom:1px solid var(--border);last-child:border-0">
+          <div style="font-size:0.825rem;font-weight:600;color:var(--primary)">${app.title}</div>
+          <div style="font-size:0.775rem;color:var(--text-muted)">${app.company_name}</div>
+          <div style="margin-top:0.25rem">${getStatusBadge(app.status)}</div>
+        </div>
+      `).join('');
+    }
+  } catch {}
+}
+
+async function postJob() {
+  const title = document.getElementById('job-title').value;
+  const company_name = document.getElementById('job-company').value;
+  const description = document.getElementById('job-desc').value;
+  const requirements = document.getElementById('job-req').value;
+  const location = document.getElementById('job-location').value;
+  const job_type = document.getElementById('job-type').value;
+  const package_lpa = document.getElementById('job-package').value;
+  const min_cgpa = document.getElementById('job-min-cgpa').value;
+  const eligible_departments = document.getElementById('job-depts').value.split(',').map(s => s.trim()).filter(Boolean);
+  const deadline = document.getElementById('job-deadline').value;
+
+  if (!title || !company_name || !description || !deadline) {
+    showToast('Please fill all required fields', 'warning'); return;
+  }
+
+  try {
+    const { ok, data } = await apiFetch('/jobs', {
+      method: 'POST',
+      body: JSON.stringify({ title, company_name, description, requirements, location, job_type, package_lpa, min_cgpa, eligible_departments, deadline })
+    });
+
+    if (ok) {
+      closeModal('post-job-modal');
+      showToast('Job posted successfully!', 'success');
+      document.getElementById('post-job-form').reset();
+      loadJobs();
+    } else {
+      showToast(data.message || 'Failed to post job', 'error');
+    }
+  } catch {
+    showToast('Error posting job', 'error');
+  }
+}
+
+async function deactivateJob(id) {
+  if (!confirm('Remove this job posting?')) return;
+  try {
+    const { ok } = await apiFetch(`/jobs/${id}`, { method: 'DELETE' });
+    if (ok) { showToast('Job removed', 'success'); loadJobs(currentPage); }
+  } catch {}
+}
+
+function clearFilters() {
+  document.getElementById('filter-search').value = '';
+  document.getElementById('filter-type').value = '';
+  document.getElementById('filter-dept').value = '';
+  loadJobs();
+}
+
+// Set min date for deadline input
+document.getElementById('job-deadline').min = new Date().toISOString().split('T')[0];
+</script>
+</body>
+</html>

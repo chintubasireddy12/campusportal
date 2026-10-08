@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NeoPatna - Campus Management Portal | NIT Patna</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .section-title { font-size: 1.75rem; font-weight: 800; color: var(--primary); margin-bottom: 0.5rem; }
+    .section-sub { color: var(--text-muted); margin-bottom: 2rem; }
+    .section { padding: 3.5rem 1.5rem; }
+    .section-alt { background: white; }
+    .feature-icon { width: 56px; height: 56px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; margin-bottom: 1rem; }
+    .dept-card { background: white; border-radius: 10px; border: 1px solid var(--border); padding: 1.25rem; text-align: center; transition: all 0.25s; }
+    .dept-card:hover { border-color: var(--primary-light); transform: translateY(-2px); box-shadow: var(--shadow); }
+    .dept-code { font-size: 1.5rem; font-weight: 900; color: var(--primary); }
+    .dept-name { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem; }
+    .quick-links { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+    .quick-link-card { background: white; border: 1px solid var(--border); border-radius: 10px; padding: 1.5rem; text-align: center; transition: all 0.25s; cursor: pointer; }
+    .quick-link-card:hover { border-color: var(--primary); transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+    .quick-link-icon { font-size: 2rem; margin-bottom: 0.75rem; }
+    .announcement-list { display: flex; flex-direction: column; gap: 0.75rem; }
+  </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <a href="/" class="navbar-brand">
+    <div class="logo-icon">NP</div>
+    <div class="brand-text">
+      NeoPatna
+      <span>NIT Patna Campus Portal</span>
+    </div>
+  </a>
+  <ul class="nav-links">
+    <li><a href="/" class="active">🏠 Home</a></li>
+    <li><a href="/jobs">💼 Placements</a></li>
+    <li><a href="/notices">📋 Notices</a></li>
+    <li><a href="#events-section">📅 Events</a></li>
+    <li><a href="#departments">🏫 Departments</a></li>
+  </ul>
+  <div class="nav-actions">
+    <div id="guest-nav" style="display:flex;gap:0.5rem">
+      <a href="/login"><button class="btn-nav btn-nav-outline">Login</button></a>
+      <a href="/register"><button class="btn-nav btn-nav-solid">Register</button></a>
+    </div>
+    <div id="user-nav" style="display:none;align-items:center;gap:0.5rem">
+      <span style="color:rgba(255,255,255,0.8);font-size:0.875rem">Hello, <span id="nav-user-name"></span> 👋</span>
+      <a href="/dashboard"><button class="btn-nav btn-nav-outline">Dashboard</button></a>
+      <button class="btn-nav btn-nav-solid" onclick="logout()">Logout</button>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <h1>Welcome to <span>NeoPatna</span><br>Campus Portal</h1>
+  <p>Your one-stop platform for academic management, placement opportunities, campus events, and administrative services at NIT Patna.</p>
+  <div class="hero-actions">
+    <a href="/jobs"><button class="btn btn-accent btn-lg">💼 Explore Placements</button></a>
+    <a href="/register"><button class="btn btn-outline-white btn-lg">📝 Register Now</button></a>
+  </div>
+</section>
+
+<!-- STATS STRIP -->
+<div class="stats-strip">
+  <div class="stat-item"><span class="stat-num" id="stat-students">2,500+</span><span class="stat-label">Students</span></div>
+  <div class="stat-item"><span class="stat-num" id="stat-faculty">200+</span><span class="stat-label">Faculty Members</span></div>
+  <div class="stat-item"><span class="stat-num" id="stat-jobs">50+</span><span class="stat-label">Active Jobs</span></div>
+  <div class="stat-item"><span class="stat-num">100%</span><span class="stat-label">Placement Support</span></div>
+  <div class="stat-item"><span class="stat-num">6</span><span class="stat-label">Departments</span></div>
+</div>
+
+<!-- QUICK LINKS -->
+<section class="section">
+  <div class="container">
+    <h2 class="section-title text-center">Quick Access</h2>
+    <p class="section-sub text-center">Everything you need in one place</p>
+    <div class="quick-links">
+      <a href="/jobs" style="text-decoration:none">
+        <div class="quick-link-card">
+          <div class="quick-link-icon">💼</div>
+          <h3 style="color:var(--primary);margin-bottom:0.25rem">Placements</h3>
+          <p style="color:var(--text-muted);font-size:0.85rem">Browse & apply for jobs</p>
+        </div>
+      </a>
+      <a href="/notices" style="text-decoration:none">
+        <div class="quick-link-card">
+          <div class="quick-link-icon">📋</div>
+          <h3 style="color:var(--primary);margin-bottom:0.25rem">Notices</h3>
+          <p style="color:var(--text-muted);font-size:0.85rem">Campus announcements</p>
+        </div>
+      </a>
+      <a href="/dashboard" style="text-decoration:none">
+        <div class="quick-link-card">
+          <div class="quick-link-icon">📊</div>
+          <h3 style="color:var(--primary);margin-bottom:0.25rem">Dashboard</h3>
+          <p style="color:var(--text-muted);font-size:0.85rem">Your personal portal</p>
+        </div>
+      </a>
+      <a href="/register" style="text-decoration:none">
+        <div class="quick-link-card">
+          <div class="quick-link-icon">📝</div>
+          <h3 style="color:var(--primary);margin-bottom:0.25rem">Register</h3>
+          <p style="color:var(--text-muted);font-size:0.85rem">Create your account</p>
+        </div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- NOTICES + EVENTS -->
+<section class="section section-alt">
+  <div class="container">
+    <div class="grid-2" style="align-items:start;gap:2rem">
+      <!-- Recent Notices -->
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem">
+          <h2 class="section-title" style="margin-bottom:0">📋 Latest Notices</h2>
+          <a href="/notices" style="font-size:0.85rem;color:var(--primary-light);font-weight:600">View all →</a>
+        </div>
+        <div class="announcement-list" id="notices-list">
+          <div class="loading-state"><div class="spinner"></div></div>
+        </div>
+      </div>
+
+      <!-- Upcoming Events -->
+      <div id="events-section">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem">
+          <h2 class="section-title" style="margin-bottom:0">📅 Upcoming Events</h2>
+        </div>
+        <div id="events-list">
+          <div class="loading-state"><div class="spinner"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DEPARTMENTS -->
+<section class="section" id="departments">
+  <div class="container">
+    <h2 class="section-title text-center">🏫 Our Departments</h2>
+    <p class="section-sub text-center">Excellence in every field of engineering</p>
+    <div id="departments-grid" class="grid-3">
+      <div class="loading-state"><div class="spinner"></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-grid">
+    <div>
+      <h4>NeoPatna Portal</h4>
+      <p style="font-size:0.875rem;color:rgba(255,255,255,0.6);margin-bottom:0.75rem">Official Campus Management System for NIT Patna Students, Faculty and Administration.</p>
+    </div>
+    <div>
+      <h4>Quick Links</h4>
+      <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="/jobs">Placements</a></li>
+        <li><a href="/notices">Notices</a></li>
+        <li><a href="/register">Register</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Contact</h4>
+      <ul>
+        <li><a href="#">📧 admin@neopatna.ac.in</a></li>
+        <li><a href="#">📞 +91 612-271-2701</a></li>
+        <li><a href="#">📍 Patna, Bihar 800005</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2024 NeoPatna - NIT Patna Campus Portal. All rights reserved.</p>
+  </div>
+</footer>
+
+<script src="/js/app.js"></script>
+<script>
+(async function() {
+  // Load notices
+  try {
+    const { data } = await apiFetch('/notices?limit=5');
+    const list = document.getElementById('notices-list');
+    if (data.success && data.notices.length) {
+      list.innerHTML = data.notices.map(n => `
+        <div class="notice-card ${n.is_pinned ? 'pinned' : ''} ${n.category === 'urgent' ? 'urgent' : ''}">
+          <div class="notice-title">
+            ${n.is_pinned ? '<span style="color:var(--accent)" title="Pinned">📌</span>' : ''}
+            ${n.title}
+          </div>
+          <p style="font-size:0.85rem;color:var(--text-muted);margin:0.35rem 0 0.5rem;line-height:1.5">${n.content.substring(0, 120)}${n.content.length > 120 ? '...' : ''}</p>
+          <div class="notice-meta">
+            <span class="tag tag-blue">${n.category}</span>
+            <span>${timeAgo(n.created_at)}</span>
+          </div>
+        </div>
+      `).join('');
+    } else {
+      list.innerHTML = '<p style="color:var(--text-muted);text-align:center">No notices available</p>';
+    }
+  } catch {
+    document.getElementById('notices-list').innerHTML = '<p class="text-muted">Failed to load notices</p>';
+  }
+
+  // Load events
+  try {
+    const { data } = await apiFetch('/events?upcoming=true');
+    const list = document.getElementById('events-list');
+    if (data.success && data.events.length) {
+      list.innerHTML = data.events.slice(0, 4).map(ev => {
+        const typeColors = { technical: 'tag-blue', academic: 'tag-green', cultural: 'tag-purple', sports: 'tag-orange', placement: 'tag-gold' };
+        return `
+          <div class="notice-card" style="margin-bottom:0.75rem;border-left-color:var(--success)">
+            <div class="notice-title">${ev.title}</div>
+            <p style="font-size:0.85rem;color:var(--text-muted);margin:0.25rem 0 0.5rem">${ev.description ? ev.description.substring(0,100) + '...' : ''}</p>
+            <div class="notice-meta">
+              <span class="tag ${typeColors[ev.event_type] || 'tag-gray'}">${ev.event_type}</span>
+              <span>📅 ${formatDate(ev.event_date)}</span>
+              ${ev.venue ? `<span>📍 ${ev.venue}</span>` : ''}
+            </div>
+          </div>`;
+      }).join('');
+    } else {
+      list.innerHTML = '<p style="color:var(--text-muted);text-align:center">No upcoming events</p>';
+    }
+  } catch {
+    document.getElementById('events-list').innerHTML = '<p class="text-muted">Failed to load events</p>';
+  }
+
+  // Load departments
+  try {
+    const { data } = await apiFetch('/departments');
+    const grid = document.getElementById('departments-grid');
+    if (data.success) {
+      const colors = ['#eff6ff','#f0fdf4','#faf5ff','#fff7ed','#fef2f2','#f0fdfa'];
+      const textColors = ['#1d4ed8','#15803d','#7c3aed','#c2410c','#991b1b','#0f766e'];
+      grid.innerHTML = data.departments.map((d, i) => `
+        <div class="dept-card">
+          <div style="width:56px;height:56px;border-radius:12px;background:${colors[i % colors.length]};display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;color:${textColors[i % textColors.length]};font-weight:900;font-size:1rem">${d.code}</div>
+          <div class="dept-code" style="color:${textColors[i % textColors.length]}">${d.code}</div>
+          <div class="dept-name">${d.name}</div>
+          ${d.hod_name ? `<p style="font-size:0.75rem;color:var(--text-muted);margin-top:0.35rem">HOD: ${d.hod_name}</p>` : ''}
+        </div>
+      `).join('');
+    }
+  } catch {
+    document.getElementById('departments-grid').innerHTML = '<p class="text-muted text-center">Failed to load departments</p>';
+  }
+})();
+</script>
+</body>
+</html>

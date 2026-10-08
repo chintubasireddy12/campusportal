@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard | NeoPatna Campus Portal</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .stat-card { background: white; border-radius: 12px; border: 1px solid var(--border); padding: 1.5rem; display: flex; align-items: center; gap: 1.25rem; }
+    .stat-icon { width: 56px; height: 56px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; flex-shrink: 0; }
+    .stat-card .stat-num { font-size: 1.75rem; font-weight: 800; line-height: 1; }
+    .stat-card .stat-label { font-size: 0.8rem; color: var(--text-muted); }
+    .profile-card { background: linear-gradient(135deg, var(--primary), var(--primary-light)); color: white; border-radius: 14px; padding: 2rem; }
+    .profile-avatar { width: 72px; height: 72px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 900; border: 3px solid rgba(255,255,255,0.4); }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="/" class="navbar-brand">
+    <div class="logo-icon">NP</div>
+    <div class="brand-text">NeoPatna <span>NIT Patna Campus Portal</span></div>
+  </a>
+  <ul class="nav-links">
+    <li><a href="/">🏠 Home</a></li>
+    <li><a href="/jobs">💼 Placements</a></li>
+    <li><a href="/notices">📋 Notices</a></li>
+    <li><a href="/dashboard" class="active">📊 Dashboard</a></li>
+  </ul>
+  <div class="nav-actions">
+    <div id="user-nav" style="display:flex;align-items:center;gap:0.5rem">
+      <span style="color:rgba(255,255,255,0.8);font-size:0.875rem">Hello, <span id="nav-user-name"></span></span>
+      <button class="btn-nav btn-nav-solid" onclick="logout()">Logout</button>
+    </div>
+  </div>
+</nav>
+
+<div class="app-layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Navigation</div>
+      <a href="/dashboard" class="sidebar-link active"><span class="icon">📊</span> Dashboard</a>
+      <a href="/jobs" class="sidebar-link"><span class="icon">💼</span> Placements</a>
+      <a href="/notices" class="sidebar-link"><span class="icon">📋</span> Notices</a>
+    </div>
+    <div class="sidebar-section" id="student-sidebar" style="display:none">
+      <div class="sidebar-section-title">Student</div>
+      <a href="#my-applications" class="sidebar-link" onclick="showTab('applications')"><span class="icon">📝</span> My Applications</a>
+      <a href="#profile" class="sidebar-link" onclick="showTab('profile')"><span class="icon">👤</span> My Profile</a>
+    </div>
+    <div class="sidebar-section" id="admin-sidebar" style="display:none">
+      <div class="sidebar-section-title">Administration</div>
+      <a href="/admin" class="sidebar-link"><span class="icon">👑</span> Admin Panel</a>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Account</div>
+      <a href="#" class="sidebar-link" onclick="logout()"><span class="icon">🚪</span> Logout</a>
+    </div>
+  </aside>
+
+  <!-- Content Area -->
+  <div class="content-area">
+    <div style="padding:2rem">
+
+      <!-- Profile Card -->
+      <div class="profile-card mb-3" id="profile-card">
+        <div style="display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap">
+          <div class="profile-avatar" id="profile-avatar">?</div>
+          <div>
+            <h2 style="font-size:1.5rem;font-weight:800" id="prof-name">Loading...</h2>
+            <p style="opacity:0.85;font-size:0.9rem" id="prof-email"></p>
+            <div style="display:flex;gap:0.75rem;margin-top:0.5rem;flex-wrap:wrap">
+              <span id="prof-role" style="background:rgba(255,255,255,0.2);border-radius:20px;padding:0.2rem 0.75rem;font-size:0.8rem"></span>
+              <span id="prof-dept" style="background:rgba(255,255,255,0.15);border-radius:20px;padding:0.2rem 0.75rem;font-size:0.8rem"></span>
+              <span id="prof-cgpa" style="background:rgba(232,160,0,0.3);border-radius:20px;padding:0.2rem 0.75rem;font-size:0.8rem;color:var(--accent-light);font-weight:700"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats Row -->
+      <div class="grid-4 mb-3" id="stats-row">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#eff6ff">📝</div>
+          <div><div class="stat-num text-primary" id="stat-apps">-</div><div class="stat-label">Applications</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#f0fdf4">✅</div>
+          <div><div class="stat-num" style="color:var(--success)" id="stat-shortlisted">-</div><div class="stat-label">Shortlisted</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#fffbeb">⏳</div>
+          <div><div class="stat-num" style="color:var(--warning)" id="stat-open-jobs">-</div><div class="stat-label">Open Jobs</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#faf5ff">🏆</div>
+          <div><div class="stat-num" style="color:#7c3aed" id="stat-selected">-</div><div class="stat-label">Selected</div></div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div style="display:flex;gap:0.5rem;margin-bottom:1.5rem;border-bottom:2px solid var(--border)">
+        <button class="tab-btn active" onclick="showTab('applications')" id="tab-applications" style="padding:0.65rem 1.25rem;background:none;border:none;font-weight:600;cursor:pointer;color:var(--primary);border-bottom:3px solid var(--primary);margin-bottom:-2px">📝 My Applications</button>
+        <button class="tab-btn" onclick="showTab('profile')" id="tab-profile" style="padding:0.65rem 1.25rem;background:none;border:none;font-weight:600;cursor:pointer;color:var(--text-muted)">👤 Profile</button>
+        <button class="tab-btn" onclick="showTab('notices')" id="tab-notices" style="padding:0.65rem 1.25rem;background:none;border:none;font-weight:600;cursor:pointer;color:var(--text-muted)">📋 Notices</button>
+      </div>
+
+      <!-- My Applications Tab -->
+      <div id="tab-content-applications">
+        <div class="table-container" id="apps-table">
+          <div class="loading-state"><div class="spinner"></div></div>
+        </div>
+      </div>
+
+      <!-- Profile Tab -->
+      <div id="tab-content-profile" style="display:none">
+        <div class="card" style="max-width:600px">
+          <div class="card-header"><h3>Edit Profile</h3></div>
+          <div class="card-body">
+            <form id="profile-form">
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Full Name</label>
+                  <input type="text" id="edit-name" class="form-control">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Phone</label>
+                  <input type="tel" id="edit-phone" class="form-control">
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">LinkedIn URL</label>
+                <input type="url" id="edit-linkedin" class="form-control" placeholder="https://linkedin.com/in/...">
+              </div>
+              <div class="form-group">
+                <label class="form-label">CGPA</label>
+                <input type="number" id="edit-cgpa" class="form-control" step="0.01" min="0" max="10">
+              </div>
+              <button type="button" class="btn btn-primary" onclick="updateProfile()">💾 Save Changes</button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notices Tab -->
+      <div id="tab-content-notices" style="display:none">
+        <div id="notices-container">
+          <div class="loading-state"><div class="spinner"></div></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="/js/app.js"></script>
+<script>
+  // Auth guard
+  if (!Auth.isLoggedIn()) window.location.href = '/login';
+
+  const user = Auth.getUser();
+
+  function showTab(tab) {
+    document.querySelectorAll('[id^="tab-content-"]').forEach(el => el.style.display = 'none');
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.style.color = 'var(--text-muted)';
+      btn.style.borderBottom = 'none';
+    });
+    document.getElementById(`tab-content-${tab}`).style.display = 'block';
+    const activeBtn = document.getElementById(`tab-${tab}`);
+    activeBtn.style.color = 'var(--primary)';
+    activeBtn.style.borderBottom = '3px solid var(--primary)';
+    activeBtn.style.marginBottom = '-2px';
+
+    if (tab === 'notices') loadNotices();
+  }
+
+  async function initDashboard() {
+    // Load user info
+    try {
+      const { data } = await apiFetch('/auth/me');
+      if (data.success) {
+        const u = data.user;
+        document.getElementById('prof-name').textContent = u.name;
+        document.getElementById('prof-email').textContent = u.email;
+        document.getElementById('prof-role').textContent = '👤 ' + u.role.charAt(0).toUpperCase() + u.role.slice(1);
+        document.getElementById('prof-dept').textContent = u.department_name ? '🏫 ' + u.department_name : '';
+        document.getElementById('prof-cgpa').textContent = u.cgpa ? 'CGPA: ' + u.cgpa : '';
+        document.getElementById('profile-avatar').textContent = u.name.charAt(0).toUpperCase();
+        // Fill profile form
+        document.getElementById('edit-name').value = u.name;
+        document.getElementById('edit-phone').value = u.phone || '';
+        document.getElementById('edit-linkedin').value = u.linkedin_url || '';
+        document.getElementById('edit-cgpa').value = u.cgpa || '';
+      }
+    } catch {}
+
+    // Show role-specific sidebar
+    if (user.role === 'student') {
+      document.getElementById('student-sidebar').style.display = 'block';
+      loadMyApplications();
+    }
+    if (user.role === 'admin') {
+      document.getElementById('admin-sidebar').style.display = 'block';
+    }
+  }
+
+  async function loadMyApplications() {
+    const container = document.getElementById('apps-table');
+    try {
+      const { data } = await apiFetch('/jobs/student/my-applications');
+      if (!data.success || !data.applications.length) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">📭</div>
+            <h3>No Applications Yet</h3>
+            <p>Browse <a href="/jobs" style="color:var(--primary-light)">available jobs</a> and apply!</p>
+          </div>`;
+        return;
+      }
+
+      // Update stats
+      const apps = data.applications;
+      document.getElementById('stat-apps').textContent = apps.length;
+      document.getElementById('stat-shortlisted').textContent = apps.filter(a => a.status === 'shortlisted').length;
+      document.getElementById('stat-selected').textContent = apps.filter(a => a.status === 'selected').length;
+
+      container.innerHTML = `
+        <table>
+          <thead>
+            <tr>
+              <th>Job Title</th>
+              <th>Company</th>
+              <th>Type</th>
+              <th>Package</th>
+              <th>Deadline</th>
+              <th>Status</th>
+              <th>Applied On</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${apps.map(app => `
+              <tr>
+                <td><strong>${app.title}</strong></td>
+                <td>${app.company_name}</td>
+                <td>${getJobTypeTag(app.job_type)}</td>
+                <td>${app.package_lpa ? '₹' + app.package_lpa + ' LPA' : '-'}</td>
+                <td>${formatDate(app.deadline)}</td>
+                <td>${getStatusBadge(app.status)}</td>
+                <td>${timeAgo(app.applied_at)}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>`;
+    } catch {
+      container.innerHTML = '<div class="alert alert-error">Failed to load applications</div>';
+    }
+  }
+
+  async function loadNotices() {
+    const container = document.getElementById('notices-container');
+    try {
+      const { data } = await apiFetch('/notices?limit=20');
+      if (data.success && data.notices.length) {
+        container.innerHTML = data.notices.map(n => `
+          <div class="notice-card ${n.is_pinned ? 'pinned' : ''} mb-2">
+            <div class="notice-title">
+              ${n.is_pinned ? '<span title="Pinned">📌</span>' : '📄'}
+              ${n.title}
+            </div>
+            <p style="font-size:0.875rem;color:var(--text-muted);margin:0.35rem 0 0.5rem;line-height:1.6">${n.content}</p>
+            <div class="notice-meta">
+              <span class="tag tag-blue">${n.category}</span>
+              <span>📅 ${formatDate(n.created_at)}</span>
+              ${n.created_by_name ? `<span>by ${n.created_by_name}</span>` : ''}
+            </div>
+          </div>`).join('');
+      } else {
+        container.innerHTML = '<p class="text-muted text-center">No notices available</p>';
+      }
+    } catch {}
+  }
+
+  async function loadOpenJobs() {
+    try {
+      const { data } = await apiFetch('/jobs?limit=1');
+      document.getElementById('stat-open-jobs').textContent = data.pagination?.total || 0;
+    } catch {}
+  }
+
+  async function updateProfile() {
+    const payload = {
+      name: document.getElementById('edit-name').value,
+      phone: document.getElementById('edit-phone').value,
+      linkedin_url: document.getElementById('edit-linkedin').value,
+      cgpa: document.getElementById('edit-cgpa').value
+    };
+    try {
+      const { ok, data } = await apiFetch('/auth/profile', { method: 'PUT', body: JSON.stringify(payload) });
+      if (ok) {
+        showToast('Profile updated successfully!', 'success');
+        document.getElementById('prof-name').textContent = payload.name;
+      } else {
+        showToast(data.message || 'Update failed', 'error');
+      }
+    } catch {
+      showToast('Failed to update profile', 'error');
+    }
+  }
+
+  initDashboard();
+  loadOpenJobs();
+</script>
+</body>
+</html>

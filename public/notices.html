@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notices | NeoPatna Campus Portal</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="/" class="navbar-brand">
+    <div class="logo-icon">NP</div>
+    <div class="brand-text">NeoPatna <span>NIT Patna Campus Portal</span></div>
+  </a>
+  <ul class="nav-links">
+    <li><a href="/">🏠 Home</a></li>
+    <li><a href="/jobs">💼 Placements</a></li>
+    <li><a href="/notices" class="active">📋 Notices</a></li>
+    <li><a href="/dashboard">📊 Dashboard</a></li>
+  </ul>
+  <div class="nav-actions">
+    <div id="guest-nav" style="display:flex;gap:0.5rem">
+      <a href="/login"><button class="btn-nav btn-nav-outline">Login</button></a>
+    </div>
+    <div id="user-nav" style="display:none;align-items:center;gap:0.5rem">
+      <span style="color:rgba(255,255,255,0.8);font-size:0.875rem">Hello, <span id="nav-user-name"></span></span>
+      <button class="btn-nav btn-nav-solid" onclick="logout()">Logout</button>
+    </div>
+  </div>
+</nav>
+
+<div class="page-header">
+  <div class="container">
+    <h2>📋 Campus Notices & Announcements</h2>
+    <p>Stay updated with the latest campus news, events and announcements</p>
+  </div>
+</div>
+
+<!-- Admin bar to post notices -->
+<div id="post-notice-bar" style="display:none;background:#eff6ff;border-bottom:1px solid #bfdbfe;padding:0.75rem 1.5rem">
+  <div style="display:flex;justify-content:space-between;align-items:center;max-width:1280px;margin:0 auto">
+    <span style="font-size:0.875rem;color:#1e40af;font-weight:600">👑 Admin/Faculty Access</span>
+    <button class="btn btn-primary btn-sm" onclick="openModal('post-notice-modal')">+ Post Notice</button>
+  </div>
+</div>
+
+<div class="main-content container">
+  <div style="display:grid;grid-template-columns:240px 1fr;gap:1.5rem;align-items:start">
+    <!-- Category Filter -->
+    <aside>
+      <div class="card">
+        <div class="card-header"><h3>📂 Categories</h3></div>
+        <div style="padding:0.75rem">
+          <button class="sidebar-link" style="width:100%;background:none;border:none;cursor:pointer;text-align:left;border-radius:6px" onclick="filterCategory('')" id="cat-all">All Notices</button>
+          <button class="sidebar-link" style="width:100%;background:none;border:none;cursor:pointer;text-align:left;border-radius:6px" onclick="filterCategory('general')">📢 General</button>
+          <button class="sidebar-link" style="width:100%;background:none;border:none;cursor:pointer;text-align:left;border-radius:6px" onclick="filterCategory('academic')">📚 Academic</button>
+          <button class="sidebar-link" style="width:100%;background:none;border:none;cursor:pointer;text-align:left;border-radius:6px" onclick="filterCategory('exam')">📝 Exam</button>
+          <button class="sidebar-link" style="width:100%;background:none;border:none;cursor:pointer;text-align:left;border-radius:6px" onclick="filterCategory('placement')">💼 Placement</button>
+          <button class="sidebar-link" style="width:100%;background:none;border:none;cursor:pointer;text-align:left;border-radius:6px" onclick="filterCategory('scholarship')">🎓 Scholarship</button>
+          <button class="sidebar-link" style="width:100%;background:none;border:none;cursor:pointer;text-align:left;border-radius:6px" onclick="filterCategory('urgent')">🚨 Urgent</button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Notices list -->
+    <div>
+      <div id="notices-list" style="display:flex;flex-direction:column;gap:1rem">
+        <div class="loading-state"><div class="spinner"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Post Notice Modal -->
+<div class="modal-overlay" id="post-notice-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>📢 Post New Notice</h3>
+      <button class="modal-close" onclick="closeModal('post-notice-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Notice Title *</label>
+        <input type="text" id="notice-title" class="form-control" placeholder="Enter notice title" required>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Category</label>
+          <select id="notice-category" class="form-control form-select">
+            <option value="general">General</option>
+            <option value="academic">Academic</option>
+            <option value="exam">Exam</option>
+            <option value="placement">Placement</option>
+            <option value="scholarship">Scholarship</option>
+            <option value="urgent">Urgent</option>
+          </select>
+        </div>
+        <div class="form-group" style="display:flex;align-items:center;gap:0.5rem;padding-top:1.75rem">
+          <input type="checkbox" id="notice-pinned" style="width:18px;height:18px;cursor:pointer">
+          <label for="notice-pinned" class="form-label" style="margin:0;cursor:pointer">📌 Pin this notice</label>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Content *</label>
+        <textarea id="notice-content" class="form-control" rows="6" placeholder="Enter notice content..." required></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('post-notice-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="postNotice()">📢 Post Notice</button>
+    </div>
+  </div>
+</div>
+
+<script src="/js/app.js"></script>
+<script>
+let currentCategory = '';
+const user = Auth.getUser();
+
+if (user && (user.role === 'admin' || user.role === 'faculty')) {
+  document.getElementById('post-notice-bar').style.display = 'block';
+}
+
+async function loadNotices() {
+  const list = document.getElementById('notices-list');
+  list.innerHTML = '<div class="loading-state"><div class="spinner"></div></div>';
+
+  try {
+    const params = new URLSearchParams({ limit: 30 });
+    if (currentCategory) params.set('category', currentCategory);
+    const { data } = await apiFetch('/notices?' + params);
+
+    if (!data.success || !data.notices.length) {
+      list.innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div><h3>No notices found</h3></div>';
+      return;
+    }
+
+    const catColors = { general:'tag-gray', academic:'tag-blue', exam:'tag-orange', placement:'tag-gold', scholarship:'tag-purple', urgent:'tag-red' };
+    list.innerHTML = data.notices.map(n => `
+      <div class="notice-card ${n.is_pinned ? 'pinned' : ''} ${n.category === 'urgent' ? 'urgent' : ''}">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem">
+          <div>
+            <div class="notice-title" style="font-size:1rem;margin-bottom:0.5rem">
+              ${n.is_pinned ? '<span title="Pinned">📌</span>' : '📄'}
+              ${n.title}
+            </div>
+            <p style="font-size:0.875rem;color:var(--text-muted);line-height:1.7;margin-bottom:0.75rem">${n.content}</p>
+            <div class="notice-meta">
+              <span class="tag ${catColors[n.category] || 'tag-gray'}">${n.category}</span>
+              <span>📅 ${formatDate(n.created_at)}</span>
+              ${n.created_by_name ? `<span>by ${n.created_by_name}</span>` : ''}
+            </div>
+          </div>
+          ${user && user.role === 'admin' ? `
+            <button class="btn btn-danger btn-sm" style="flex-shrink:0" onclick="deleteNotice(${n.id})">Delete</button>
+          ` : ''}
+        </div>
+      </div>`).join('');
+  } catch {
+    list.innerHTML = '<div class="alert alert-error">Failed to load notices</div>';
+  }
+}
+
+function filterCategory(cat) {
+  currentCategory = cat;
+  loadNotices();
+}
+
+async function postNotice() {
+  const title = document.getElementById('notice-title').value;
+  const content = document.getElementById('notice-content').value;
+  const category = document.getElementById('notice-category').value;
+  const is_pinned = document.getElementById('notice-pinned').checked;
+
+  if (!title || !content) { showToast('Title and content required', 'warning'); return; }
+
+  try {
+    const { ok, data } = await apiFetch('/notices', {
+      method: 'POST',
+      body: JSON.stringify({ title, content, category, is_pinned })
+    });
+    if (ok) {
+      closeModal('post-notice-modal');
+      showToast('Notice posted!', 'success');
+      document.getElementById('notice-title').value = '';
+      document.getElementById('notice-content').value = '';
+      loadNotices();
+    } else {
+      showToast(data.message || 'Failed', 'error');
+    }
+  } catch {
+    showToast('Error posting notice', 'error');
+  }
+}
+
+async function deleteNotice(id) {
+  if (!confirm('Delete this notice?')) return;
+  try {
+    const { ok } = await apiFetch(`/notices/${id}`, { method: 'DELETE' });
+    if (ok) { showToast('Notice deleted', 'success'); loadNotices(); }
+  } catch {}
+}
+
+loadNotices();
+</script>
+</body>
+</html>

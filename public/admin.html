@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel | NeoPatna Campus Portal</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .admin-stat { background: white; border-radius: 12px; padding: 1.5rem; border: 1px solid var(--border); }
+    .admin-stat .num { font-size: 2rem; font-weight: 900; color: var(--primary); }
+    .admin-stat .lbl { color: var(--text-muted); font-size: 0.8rem; }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="/" class="navbar-brand">
+    <div class="logo-icon">NP</div>
+    <div class="brand-text">NeoPatna <span>Admin Panel</span></div>
+  </a>
+  <ul class="nav-links">
+    <li><a href="/">🏠 Home</a></li>
+    <li><a href="/dashboard">📊 Dashboard</a></li>
+    <li><a href="/jobs">💼 Jobs</a></li>
+    <li><a href="/admin" class="active">👑 Admin</a></li>
+  </ul>
+  <div class="nav-actions">
+    <div id="user-nav" style="display:flex;align-items:center;gap:0.5rem">
+      <span style="color:rgba(255,255,255,0.8);font-size:0.875rem">Admin: <span id="nav-user-name"></span></span>
+      <button class="btn-nav btn-nav-solid" onclick="logout()">Logout</button>
+    </div>
+  </div>
+</nav>
+
+<div class="app-layout">
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Admin Navigation</div>
+      <a href="#overview" class="sidebar-link active" onclick="showSection('overview')"><span class="icon">📊</span> Overview</a>
+      <a href="#jobs" class="sidebar-link" onclick="showSection('jobs')"><span class="icon">💼</span> Job Management</a>
+      <a href="#applications" class="sidebar-link" onclick="showSection('applications')"><span class="icon">📝</span> Applications</a>
+      <a href="#users" class="sidebar-link" onclick="showSection('users')"><span class="icon">👥</span> Users</a>
+      <a href="#notices" class="sidebar-link" onclick="showSection('notices')"><span class="icon">📋</span> Notices</a>
+      <a href="#events" class="sidebar-link" onclick="showSection('events')"><span class="icon">📅</span> Events</a>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">System</div>
+      <a href="/dashboard" class="sidebar-link"><span class="icon">🏠</span> Back to Portal</a>
+      <a href="#" class="sidebar-link" onclick="logout()"><span class="icon">🚪</span> Logout</a>
+    </div>
+  </aside>
+
+  <div class="content-area" style="padding:2rem">
+
+    <!-- OVERVIEW SECTION -->
+    <div id="section-overview">
+      <h2 style="font-size:1.5rem;font-weight:800;color:var(--primary);margin-bottom:1.5rem">📊 System Overview</h2>
+      <div class="grid-4 mb-3" id="admin-stats-grid">
+        <div class="loading-state" style="grid-column:1/-1"><div class="spinner"></div></div>
+      </div>
+      <!-- Top companies table -->
+      <div class="card mt-3">
+        <div class="card-header"><h3>🏆 Top Companies by Applications</h3></div>
+        <div class="card-body" id="top-companies-table">
+          <div class="loading-state"><div class="spinner"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- JOBS SECTION -->
+    <div id="section-jobs" style="display:none">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+        <h2 style="font-size:1.5rem;font-weight:800;color:var(--primary)">💼 Job Management</h2>
+        <a href="/jobs"><button class="btn btn-primary">+ Post New Job</button></a>
+      </div>
+      <div class="table-container" id="admin-jobs-table">
+        <div class="loading-state"><div class="spinner"></div></div>
+      </div>
+    </div>
+
+    <!-- APPLICATIONS SECTION -->
+    <div id="section-applications" style="display:none">
+      <h2 style="font-size:1.5rem;font-weight:800;color:var(--primary);margin-bottom:1.5rem">📝 All Applications</h2>
+      <div class="card mb-2">
+        <div class="card-body" style="padding:1rem">
+          <div class="form-row">
+            <div class="form-group" style="margin:0">
+              <label class="form-label">Select Job</label>
+              <select id="job-filter-select" class="form-control form-select" onchange="loadApplicationsForJob()">
+                <option value="">Choose a job...</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="table-container" id="applications-table">
+        <div class="empty-state"><div class="empty-icon">📋</div><h3>Select a job to view applications</h3></div>
+      </div>
+    </div>
+
+    <!-- USERS SECTION -->
+    <div id="section-users" style="display:none">
+      <h2 style="font-size:1.5rem;font-weight:800;color:var(--primary);margin-bottom:1.5rem">👥 User Management</h2>
+      <div class="card mb-2">
+        <div class="card-body" style="padding:1rem">
+          <div class="form-row">
+            <div class="form-group" style="margin:0">
+              <label class="form-label">Filter by Role</label>
+              <select id="user-role-filter" class="form-control form-select" onchange="loadUsers()">
+                <option value="">All Roles</option>
+                <option value="student">Students</option>
+                <option value="faculty">Faculty</option>
+                <option value="recruiter">Recruiters</option>
+                <option value="admin">Admins</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin:0">
+              <label class="form-label">Search</label>
+              <input type="text" id="user-search" class="form-control" placeholder="Name or email..." oninput="debounceUsers()">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="table-container" id="users-table">
+        <div class="loading-state"><div class="spinner"></div></div>
+      </div>
+    </div>
+
+    <!-- NOTICES SECTION -->
+    <div id="section-notices" style="display:none">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+        <h2 style="font-size:1.5rem;font-weight:800;color:var(--primary)">📋 Notices Management</h2>
+        <a href="/notices"><button class="btn btn-primary">+ Post Notice</button></a>
+      </div>
+      <div id="admin-notices-list">
+        <div class="loading-state"><div class="spinner"></div></div>
+      </div>
+    </div>
+
+    <!-- EVENTS SECTION -->
+    <div id="section-events" style="display:none">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+        <h2 style="font-size:1.5rem;font-weight:800;color:var(--primary)">📅 Events Management</h2>
+        <button class="btn btn-primary" onclick="openModal('post-event-modal')">+ Add Event</button>
+      </div>
+      <div id="admin-events-list">
+        <div class="loading-state"><div class="spinner"></div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Post Event Modal -->
+<div class="modal-overlay" id="post-event-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>📅 Add Campus Event</h3>
+      <button class="modal-close" onclick="closeModal('post-event-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Event Title *</label>
+        <input type="text" id="ev-title" class="form-control" placeholder="Event name" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <textarea id="ev-desc" class="form-control" rows="3" placeholder="Event details..."></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Date *</label>
+          <input type="date" id="ev-date" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Time</label>
+          <input type="time" id="ev-time" class="form-control">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Venue</label>
+          <input type="text" id="ev-venue" class="form-control" placeholder="Location">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Type</label>
+          <select id="ev-type" class="form-control form-select">
+            <option value="general">General</option>
+            <option value="academic">Academic</option>
+            <option value="technical">Technical</option>
+            <option value="cultural">Cultural</option>
+            <option value="sports">Sports</option>
+            <option value="placement">Placement</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('post-event-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="postEvent()">📅 Add Event</button>
+    </div>
+  </div>
+</div>
+
+<!-- Application Status Update Modal -->
+<div class="modal-overlay" id="update-status-modal">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header">
+      <h3>Update Application Status</h3>
+      <button class="modal-close" onclick="closeModal('update-status-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="upd-job-id">
+      <input type="hidden" id="upd-app-id">
+      <p id="upd-student-name" style="margin-bottom:1rem;font-weight:600"></p>
+      <div class="form-group">
+        <label class="form-label">New Status</label>
+        <select id="upd-status" class="form-control form-select">
+          <option value="applied">Applied</option>
+          <option value="shortlisted">Shortlisted</option>
+          <option value="interview">Interview</option>
+          <option value="selected">Selected</option>
+          <option value="rejected">Rejected</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('update-status-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="updateStatus()">Update</button>
+    </div>
+  </div>
+</div>
+
+<script src="/js/app.js"></script>
+<script>
+  if (!Auth.isLoggedIn() || Auth.getUser()?.role !== 'admin') {
+    showToast('Admin access required', 'error');
+    setTimeout(() => window.location.href = '/dashboard', 1500);
+  }
+
+  let activeSection = 'overview';
+
+  function showSection(name) {
+    document.querySelectorAll('[id^="section-"]').forEach(el => el.style.display = 'none');
+    document.getElementById('section-' + name).style.display = 'block';
+    document.querySelectorAll('.sidebar-link').forEach(el => el.classList.remove('active'));
+    document.querySelector(`.sidebar-link[href="#${name}"]`)?.classList.add('active');
+    activeSection = name;
+
+    if (name === 'overview') loadStats();
+    if (name === 'jobs') loadAdminJobs();
+    if (name === 'applications') loadJobsForSelect();
+    if (name === 'users') loadUsers();
+    if (name === 'notices') loadAdminNotices();
+    if (name === 'events') loadAdminEvents();
+  }
+
+  async function loadStats() {
+    const grid = document.getElementById('admin-stats-grid');
+    try {
+      const { data } = await apiFetch('/dashboard/stats');
+      if (data.success) {
+        const s = data.stats;
+        grid.innerHTML = `
+          <div class="admin-stat"><div class="num">${s.students}</div><div class="lbl">🎓 Students</div></div>
+          <div class="admin-stat"><div class="num">${s.faculty}</div><div class="lbl">👨‍🏫 Faculty</div></div>
+          <div class="admin-stat"><div class="num">${s.active_jobs}</div><div class="lbl">💼 Active Jobs</div></div>
+          <div class="admin-stat"><div class="num">${s.total_applications}</div><div class="lbl">📝 Applications</div></div>
+          <div class="admin-stat"><div class="num">${s.upcoming_events}</div><div class="lbl">📅 Events</div></div>
+          <div class="admin-stat"><div class="num">${s.active_notices}</div><div class="lbl">📋 Notices</div></div>
+        `;
+
+        // Application status breakdown
+        const statusHtml = s.application_status.map(st => `
+          <div style="display:flex;justify-content:space-between;padding:0.5rem 0;border-bottom:1px solid var(--border)">
+            <span>${getStatusBadge(st.status)}</span>
+            <strong>${st.count}</strong>
+          </div>`).join('');
+
+        // Top companies
+        const companiesTable = document.getElementById('top-companies-table');
+        if (s.top_jobs.length) {
+          companiesTable.innerHTML = `<table><thead><tr><th>Company</th><th>Job Title</th><th>Applications</th></tr></thead><tbody>
+            ${s.top_jobs.map(j => `<tr><td><strong>${j.company_name}</strong></td><td>${j.title}</td><td><span class="tag tag-blue">${j.applications}</span></td></tr>`).join('')}
+          </tbody></table>`;
+        }
+      }
+    } catch {
+      grid.innerHTML = '<div class="alert alert-error">Failed to load stats</div>';
+    }
+  }
+
+  async function loadAdminJobs() {
+    const table = document.getElementById('admin-jobs-table');
+    try {
+      const { data } = await apiFetch('/jobs?limit=50');
+      if (!data.jobs.length) { table.innerHTML = '<div class="empty-state"><div class="empty-icon">💼</div><h3>No jobs posted</h3></div>'; return; }
+      table.innerHTML = `<table><thead><tr><th>Title</th><th>Company</th><th>Type</th><th>Deadline</th><th>Applications</th><th>Actions</th></tr></thead><tbody>
+        ${data.jobs.map(j => `
+          <tr>
+            <td><strong>${j.title}</strong></td>
+            <td>${j.company_name}</td>
+            <td>${getJobTypeTag(j.job_type)}</td>
+            <td>${formatDate(j.deadline)}</td>
+            <td><span class="tag tag-blue">${j.application_count}</span></td>
+            <td>
+              <button class="btn btn-primary btn-sm" onclick="viewJobApps(${j.id},'${j.title}')">View Apps</button>
+              <button class="btn btn-danger btn-sm" onclick="removeJob(${j.id})">Remove</button>
+            </td>
+          </tr>`).join('')}
+      </tbody></table>`;
+    } catch { table.innerHTML = '<div class="alert alert-error">Error loading jobs</div>'; }
+  }
+
+  async function loadJobsForSelect() {
+    const sel = document.getElementById('job-filter-select');
+    try {
+      const { data } = await apiFetch('/jobs?limit=100');
+      sel.innerHTML = '<option value="">Choose a job...</option>';
+      data.jobs.forEach(j => {
+        const o = document.createElement('option');
+        o.value = j.id; o.textContent = `${j.company_name} - ${j.title}`;
+        sel.appendChild(o);
+      });
+    } catch {}
+  }
+
+  async function loadApplicationsForJob() {
+    const jobId = document.getElementById('job-filter-select').value;
+    const table = document.getElementById('applications-table');
+    if (!jobId) { table.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><h3>Select a job</h3></div>'; return; }
+
+    table.innerHTML = '<div class="loading-state"><div class="spinner"></div></div>';
+    try {
+      const { data } = await apiFetch(`/jobs/${jobId}/applications`);
+      if (!data.applications.length) { table.innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div><h3>No applications</h3></div>'; return; }
+      table.innerHTML = `<table><thead><tr><th>Student</th><th>Roll No.</th><th>Department</th><th>CGPA</th><th>Applied</th><th>Status</th><th>Actions</th></tr></thead><tbody>
+        ${data.applications.map(app => `
+          <tr>
+            <td><strong>${app.student_name}</strong><br><span style="font-size:0.8rem;color:var(--text-muted)">${app.email}</span></td>
+            <td>${app.roll_number || '-'}</td>
+            <td>${app.department_name || '-'}</td>
+            <td>${app.cgpa || '-'}</td>
+            <td>${timeAgo(app.applied_at)}</td>
+            <td>${getStatusBadge(app.status)}</td>
+            <td>
+              ${app.resume_url ? `<a href="${app.resume_url}" target="_blank" class="btn btn-outline btn-sm">📄 Resume</a>` : ''}
+              <button class="btn btn-primary btn-sm" onclick="openStatusUpdate(${jobId},${app.id},'${app.student_name}','${app.status}')">Update</button>
+            </td>
+          </tr>`).join('')}
+      </tbody></table>`;
+    } catch { table.innerHTML = '<div class="alert alert-error">Failed to load applications</div>'; }
+  }
+
+  function openStatusUpdate(jobId, appId, name, currentStatus) {
+    document.getElementById('upd-job-id').value = jobId;
+    document.getElementById('upd-app-id').value = appId;
+    document.getElementById('upd-student-name').textContent = `Student: ${name}`;
+    document.getElementById('upd-status').value = currentStatus;
+    openModal('update-status-modal');
+  }
+
+  async function updateStatus() {
+    const jobId = document.getElementById('upd-job-id').value;
+    const appId = document.getElementById('upd-app-id').value;
+    const status = document.getElementById('upd-status').value;
+    try {
+      const { ok } = await apiFetch(`/jobs/${jobId}/applications/${appId}`, {
+        method: 'PUT', body: JSON.stringify({ status })
+      });
+      if (ok) {
+        closeModal('update-status-modal');
+        showToast('Status updated!', 'success');
+        loadApplicationsForJob();
+      }
+    } catch {}
+  }
+
+  async function loadUsers() {
+    const role = document.getElementById('user-role-filter').value;
+    const search = document.getElementById('user-search').value;
+    const table = document.getElementById('users-table');
+    table.innerHTML = '<div class="loading-state"><div class="spinner"></div></div>';
+
+    try {
+      const params = new URLSearchParams({ limit: 50 });
+      if (role) params.set('role', role);
+      if (search) params.set('search', search);
+      const { data } = await apiFetch('/users?' + params);
+
+      if (!data.users?.length) { table.innerHTML = '<div class="empty-state"><div class="empty-icon">👥</div><h3>No users found</h3></div>'; return; }
+      table.innerHTML = `<table><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Department</th><th>CGPA</th><th>Status</th><th>Joined</th></tr></thead><tbody>
+        ${data.users.map(u => `
+          <tr>
+            <td><strong>${u.name}</strong>${u.roll_number ? `<br><span style="font-size:0.8rem;color:var(--text-muted)">${u.roll_number}</span>` : ''}</td>
+            <td>${u.email}</td>
+            <td><span class="tag ${u.role === 'admin' ? 'tag-red' : u.role === 'faculty' ? 'tag-blue' : u.role === 'recruiter' ? 'tag-purple' : 'tag-green'}">${u.role}</span></td>
+            <td>${u.department_name || '-'}</td>
+            <td>${u.cgpa || '-'}</td>
+            <td><span class="tag ${u.is_active ? 'tag-green' : 'tag-red'}">${u.is_active ? 'Active' : 'Inactive'}</span></td>
+            <td>${formatDate(u.created_at)}</td>
+          </tr>`).join('')}
+      </tbody></table>`;
+    } catch { table.innerHTML = '<div class="alert alert-error">Failed to load users</div>'; }
+  }
+
+  async function loadAdminNotices() {
+    const container = document.getElementById('admin-notices-list');
+    try {
+      const { data } = await apiFetch('/notices?limit=50');
+      if (!data.notices?.length) { container.innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div><h3>No notices</h3></div>'; return; }
+      container.innerHTML = data.notices.map(n => `
+        <div class="notice-card ${n.is_pinned ? 'pinned' : ''} mb-2">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start">
+            <div>
+              <div class="notice-title">${n.is_pinned ? '📌' : '📄'} ${n.title}</div>
+              <p style="font-size:0.85rem;color:var(--text-muted);margin:0.35rem 0 0.5rem">${n.content.substring(0, 150)}${n.content.length > 150 ? '...' : ''}</p>
+              <div class="notice-meta"><span class="tag tag-blue">${n.category}</span><span>${formatDate(n.created_at)}</span></div>
+            </div>
+            <button class="btn btn-danger btn-sm" onclick="deleteNotice(${n.id})">Delete</button>
+          </div>
+        </div>`).join('');
+    } catch { container.innerHTML = '<div class="alert alert-error">Failed to load</div>'; }
+  }
+
+  async function deleteNotice(id) {
+    if (!confirm('Delete?')) return;
+    const { ok } = await apiFetch(`/notices/${id}`, { method: 'DELETE' });
+    if (ok) { showToast('Deleted', 'success'); loadAdminNotices(); }
+  }
+
+  async function loadAdminEvents() {
+    const container = document.getElementById('admin-events-list');
+    try {
+      const { data } = await apiFetch('/events');
+      if (!data.events?.length) { container.innerHTML = '<div class="empty-state"><div class="empty-icon">📅</div><h3>No events</h3></div>'; return; }
+      const typeColors = { technical:'tag-blue', academic:'tag-green', cultural:'tag-purple', sports:'tag-orange', placement:'tag-gold', general:'tag-gray' };
+      container.innerHTML = `<div class="table-container"><table><thead><tr><th>Title</th><th>Type</th><th>Date</th><th>Venue</th><th>Time</th><th>Actions</th></tr></thead><tbody>
+        ${data.events.map(ev => `
+          <tr>
+            <td><strong>${ev.title}</strong></td>
+            <td><span class="tag ${typeColors[ev.event_type]}">${ev.event_type}</span></td>
+            <td>${formatDate(ev.event_date)}</td>
+            <td>${ev.venue || '-'}</td>
+            <td>${ev.event_time || '-'}</td>
+            <td><button class="btn btn-danger btn-sm" onclick="deleteEvent(${ev.id})">Remove</button></td>
+          </tr>`).join('')}
+      </tbody></table></div>`;
+    } catch { container.innerHTML = '<div class="alert alert-error">Failed to load</div>'; }
+  }
+
+  async function postEvent() {
+    const title = document.getElementById('ev-title').value;
+    const event_date = document.getElementById('ev-date').value;
+    if (!title || !event_date) { showToast('Title and date required', 'warning'); return; }
+
+    try {
+      const { ok } = await apiFetch('/events', {
+        method: 'POST',
+        body: JSON.stringify({
+          title,
+          description: document.getElementById('ev-desc').value,
+          event_date,
+          event_time: document.getElementById('ev-time').value,
+          venue: document.getElementById('ev-venue').value,
+          event_type: document.getElementById('ev-type').value
+        })
+      });
+      if (ok) { closeModal('post-event-modal'); showToast('Event added!', 'success'); loadAdminEvents(); }
+    } catch {}
+  }
+
+  async function deleteEvent(id) {
+    if (!confirm('Remove event?')) return;
+    const { ok } = await apiFetch(`/events/${id}`, { method: 'DELETE' });
+    if (ok) { showToast('Removed', 'success'); loadAdminEvents(); }
+  }
+
+  async function viewJobApps(jobId, title) {
+    document.getElementById('job-filter-select').value = jobId;
+    showSection('applications');
+    loadApplicationsForJob();
+  }
+
+  async function removeJob(id) {
+    if (!confirm('Remove this job?')) return;
+    const { ok } = await apiFetch(`/jobs/${id}`, { method: 'DELETE' });
+    if (ok) { showToast('Job removed', 'success'); loadAdminJobs(); }
+  }
+
+  let debounceUsersTimer;
+  function debounceUsers() { clearTimeout(debounceUsersTimer); debounceUsersTimer = setTimeout(loadUsers, 400); }
+
+  // Init
+  loadStats();
+</script>
+</body>
+</html>
